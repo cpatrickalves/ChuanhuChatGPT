@@ -4,6 +4,8 @@ import os
 import logging
 import sys
 import commentjson as json
+import ast
+import re
 
 from . import shared
 from . import presets
@@ -159,6 +161,13 @@ if multi_api_key:
     shared.state.set_api_key_queue(api_key_list)
 
 auth_list = config.get("users", [])  # 实际上是使用者的列表
+if os.environ.get("USERS"):
+    auth_list_str = os.environ.get("USERS")
+    # Match unquoted words and quote them
+    auth_list_str = re.sub(r"(\b\w+\b)", r"'\1'", auth_list_str)
+    # Safely evaluate the string to a Python object
+    auth_list = ast.literal_eval(auth_list_str)
+
 authflag = len(auth_list) > 0  # 是否开启认证的状态值，改为判断auth_list长度
 
 # 处理自定义的api_host，优先读环境变量的配置，如果存在则自动装配
